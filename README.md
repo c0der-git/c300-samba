@@ -8,7 +8,7 @@ Samba server adapted for Xiaomi C300 Smart IP camera
 # <logs_folder@host>
 mkdir ~/c300-samba/logs
 # <share_folder@host>
-mkdir ~/c300-samba/logs
+mkdir ~/c300-samba/share
 ~~~~
 3. Build "nt1-samba-server" docker image
 ~~~~
