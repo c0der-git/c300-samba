@@ -1,0 +1,32 @@
+[global]
+   workgroup = WORKGROUP
+   client min protocol = NT1
+   client max protocol = NT1
+   server min protocol = NT1
+   server max protocol = NT1
+   server string = %h server (Samba, Alpine)
+   netbios name = c300-samba
+   name resolve order = lmhosts wins bcast host
+   wins support = yes
+   dns proxy = no
+   domain master = no
+   local master = yes
+   preferred master = yes
+   os level = 255
+   log level = 2
+   log file = /var/log/samba/log.%m
+   max log size = 1000
+   panic action = /usr/share/samba/panic-action %d
+   server role = standalone server
+   map to guest = Bad User
+
+[share]
+   path = /srv/samba/share
+   browseable = yes
+   writeable = yes
+   read only = no
+   guest ok = no
+   valid users = smbuser
+   create mask = 0755
+   directory mask = 0755
+   write list = smbuser
