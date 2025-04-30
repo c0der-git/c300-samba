@@ -43,6 +43,21 @@ docker build \
 
 ---
 
+### 4.1 (Optional) Set shared folder paths via .env or session variables
+
+You can configure the folder locations using either a `.env` file or shell environment variables. Default values will be used if none are specified.
+
+```bash
+# .env file example:
+echo "logs_folder=$HOME/c300-samba/logs" >> .env
+echo "share_folder=$HOME/c300-samba/share" >> .env
+export $(cat .env | xargs)
+
+# OR set directly in your session:
+export logs_folder=$HOME/c300-samba/logs
+export share_folder=$HOME/c300-samba/share
+```
+
 ### 4. Run the Docker Container
 
 Replace `<logs_folder@host>` and `<share_folder@host>` with full paths to the actual folders created above:
@@ -52,8 +67,8 @@ docker run -d \
   --name xiaomiC300-samba-server \
   -m 512m --cpus="1" \
   -p 137:137/udp -p 139:139 -p 445:445 \
-  -v <logs_folder@host>:/var/log/samba \
-  -v <share_folder@host>:/srv/samba/share \
+  -v ${logs_folder:-$HOME/c300-samba/logs}:/var/log/samba \
+  -v ${share_folder:-$HOME/c300-samba/share}:/srv/samba/share \
   -v /etc/localtime:/etc/localtime:ro \
   -v /etc/timezone:/etc/timezone:ro \
   nt1-samba-server
