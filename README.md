@@ -2,7 +2,10 @@
 Samba server adapted for Xiaomi C300 Smart IP camera
 
 ## Installation
+~~~~
 1. In .env file, Set **SMBUSER password** to access \\c300-samba\share
+~~~~
+~~~~
 2. Create folders for **logs** and **share** on a host machine
 ~~~~
 # <logs_folder@host>
@@ -10,10 +13,22 @@ mkdir ~/c300-samba/logs
 # <share_folder@host>
 mkdir ~/c300-samba/share
 ~~~~
-3. Build "nt1-samba-server" docker image
+3. Define user password for Samba Server
 ~~~~
-export $(cat .env | xargs) \
-  && docker build \
+via .env file:
+`
+echo "SMBUSER_PASSWORD=<MY_STRONG_PASSWORD>" >> ~/c300-samba/.env
+cd ~/c300-samba
+export $(cat .env | xargs)
+`
+or via session variable:
+`
+export SMBUSER_PASSWORD=<MY_STRONG_PASSWORD>
+`
+~~~~
+4. Build "nt1-samba-server" docker image
+~~~~
+docker build \
   --build-arg SMBUSER_PASSWORD=$SMBUSER_PASSWORD \
   -t nt1-samba-server .
 ~~~~
