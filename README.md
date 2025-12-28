@@ -1,6 +1,8 @@
 # c300-samba
-
 A lightweight Samba server setup tailored for the Xiaomi C300 Smart IP camera, running inside a Docker container.
+
+## Changelog
+- 2025-12-28 updated Dockerfile, added docker-entrypoint.sh, tweaked smb.conf.alpine.
 
 ---
 

@@ -1,5 +1,8 @@
 [global]
    workgroup = WORKGROUP
+   security = user
+   passdb backend = tdbsam
+   encrypt passwords = yes
    client min protocol = NT1
    client max protocol = NT1
    server min protocol = NT1
