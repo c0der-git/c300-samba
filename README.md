@@ -6,122 +6,59 @@ A lightweight Samba server setup tailored for the Xiaomi C300 Smart IP camera, r
 
 ---
 
-## 🚀 Installation & Setup
-
-### 1. Set SMB User Password
-
-Edit or create the `.env` file with the Samba user password:
-
+#  How to use the image
+Recommended build (set build-time password if you want a build-time default; optional):
 ```bash
-echo "SMBUSER_PASSWORD=<MY_STRONG_PASSWORD>" >> ~/c300-samba/.env
-cd ~/c300-samba
-export $(cat .env | xargs)
+# build with a default SMB password baked into the image (optional)
+docker build --build-arg SMBUSER_PASSWORD='MyBuildPass' -t c300-samba:latest .
 ```
 
-Alternatively, export it directly:
-
+Preferred runtime: set the SMB password at container start via env (entrypoint will create or update the Samba user password):
 ```bash
-export SMBUSER_PASSWORD=<MY_STRONG_PASSWORD>
-```
-
----
-
-### 2. Create Shared Folders on the Host
-
-```bash
-mkdir -p ~/c300-samba/logs
-mkdir -p ~/c300-samba/share
-```
-
----
-
-### 3. Build Docker Image
-
-```bash
-docker build \
-  --build-arg SMBUSER_PASSWORD=$SMBUSER_PASSWORD \
-  -t nt1-samba-server .
-```
-
----
-
-### 4.1 (Optional) Set shared folder paths via .env or session variables
-
-You can configure the folder locations using either a `.env` file or shell environment variables. Default values will be used if none are specified.
-
-```bash
-# .env file example:
-echo "logs_folder=$HOME/c300-samba/logs" >> .env
-echo "share_folder=$HOME/c300-samba/share" >> .env
-export $(cat .env | xargs)
-
-# OR set directly in your session:
-export logs_folder=$HOME/c300-samba/logs
-export share_folder=$HOME/c300-samba/share
-```
-
-### 4. Run the Docker Container
-
-Replace `<logs_folder@host>` and `<share_folder@host>` with full paths to the actual folders created above:
-
-```bash
+# run with SMB password set at start (overrides any build-time pass)
 docker run -d \
-  --name xiaomiC300-samba-server \
-  -m 512m --cpus="1" \
+  --name c300-samba \
   -p 137:137/udp -p 139:139 -p 445:445 \
-  -v ${logs_folder:-$HOME/c300-samba/logs}:/var/log/samba \
-  -v ${share_folder:-$HOME/c300-samba/share}:/srv/samba/share \
+  -e SMBUSER_PASSWORD='MyRuntimePass' \
+  -v /host/path/to/logs:/var/log/samba \
+  -v /host/path/to/share:/srv/samba/share \
   -v /etc/localtime:/etc/localtime:ro \
-  -v /etc/timezone:/etc/timezone:ro \
-  nt1-samba-server
+  -v /etc/timezone:/etc/timezone:ro \ 
+  c300-samba:latest
 ```
+
+Notes:
+* Mount a host directory into /srv/samba/share if you want persistent data. If not mounted, the image will use the directory created in the container.
+* Ports: 137/udp (NetBIOS), 139 and 445.
+* You can test access from a client with the username smbuser and the password you set.
 
 ---
 
-### 5. Check Service Status (Optional)
+# Check Service Status (Optional)
 
 ```bash
 # Host's timezone applied?
-docker exec -it xiaomiC300-samba-server date
+docker exec -it c300-samba date
 
 # Samba service running?
-docker exec -it xiaomiC300-samba-server ps aux | grep smbd
+docker exec -it c300-samba ps aux | grep smbd
 
 # NetBIOS service running?
-docker exec -it xiaomiC300-samba-server ps aux | grep nmbd
+docker exec -it c300-samba ps aux | grep nmbd
 ```
 
 ---
 
-### 6. Verify from Remote Host
-
+# Verify access from local host
+## Connect to samba server
 ```bash
-smbclient //server-ip/share -U smbuser
+smbclient -L //127.0.0.1 -U smbuser%MyRuntimePass \
+  --option='client min protocol=NT1' \
+  --option='client max protocol=NT1'
 ```
-
----
-
-## 📁 Directory Structure
-
+## Create an empty local file from inside smbclient
+```bash
+!touch empty.txt
+put empty.txt
 ```
-~/c300-samba/
-├── .env
-├── Dockerfile
-├── logs/
-└── share/
-```
-
 ---
-
-## 🛠 Requirements
-
-- Docker
-- A Linux host machine
-- Optional: `smbclient` for testing from remote hosts
-
----
-
-## 📄 License
-
-[MIT](LICENSE)
-
