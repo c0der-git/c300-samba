@@ -11,12 +11,12 @@ A lightweight Samba server setup tailored for the Xiaomi C300 Smart IP camera, r
 ## Build docker image
 ```bash
 # build with a default SMB password baked into the image (optional)
-docker build --build-arg SMB_PASS='MyBuildPass -t xiaomi-samba:latest .
+docker build --build-arg SMB_PASS='MyBuildPass' -t xiaomi-samba:latest .
 ```
 
 ## Set Samba user's password
 ```bash
-export SMB_PASS="STRONG_PASSWORD"
+export SMB_PASS="MyRuntimePass"
 ```
 ## OPTION A: Manual container start
 ### Go to Samba's data folder
