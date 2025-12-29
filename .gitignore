@@ -1,0 +1,13 @@
+# folders
+share/
+data/
+logs/
+
+# environment files
+.env
+.env.local
+
+# backup files
+*.bak
+*.tmp
+*.old
