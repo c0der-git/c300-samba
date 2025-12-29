@@ -21,8 +21,6 @@ docker run -d --name c300-samba \
 -e SMBUSER_PASSWORD='MyRuntimePass' \
 -v /host/path/to/logs:/var/log/samba \
 -v /host/path/to/share:/srv/samba/share \
--v /etc/localtime:/etc/localtime:ro \
--v /etc/timezone:/etc/timezone:ro \
 c300-samba:latest
 ```
 
