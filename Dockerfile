@@ -1,39 +1,30 @@
-# Base image: Alpine Linux
-FROM alpine:latest
+FROM alpine:3.23
 
-# Expose Samba ports 137 (NetBIOS name service), 139 (SMB over NetBIOS), and 445 (SMB over TCP)
-EXPOSE 137 139 445
+# Install samba + utilities
+RUN apk add --no-cache \
+    samba \
+    samba-common-tools \
+    bash \
+    envsubst \
+    iproute2 \
+    ipcalc \
+    tzdata
 
-# Install necessary packages: Samba
-RUN apk update && \
-    apk add --no-cache samba samba-common-tools
+# Create samba runtime dirs
+RUN mkdir -p /var/log/samba /var/lib/samba /run/samba
 
-# Create the directory for the Samba share
-RUN mkdir -p /srv/samba/share && chown -R nobody:nobody /srv/samba/share
+# Copy config and entrypoint
+COPY smb.conf smb.conf.template /etc/samba/
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
+COPY entrypoint.sh /entrypoint.sh
 
-# Ensure /var/log/samba directory exists
-RUN mkdir -p /var/log/samba && chown -R root:root /var/log/samba
+RUN chmod +x /entrypoint.sh
 
-# Copy the smb.conf file from the build context to the container
-COPY smb.conf.alpine /etc/samba/smb.conf
+# Expose SMB ports
+EXPOSE 137/udp 138/udp 139/tcp 445/tcp
 
-# Add build-time argument for SMB user password (default placeholder; override at build-time)
-ARG SMBUSER_PASSWORD=changeme
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD /usr/local/bin/healthcheck.sh || exit 1
 
-# Create a Samba user without login access and no home directory
-RUN adduser -D -H -s /bin/false smbuser || true
-
-# Set the password for the Samba user (non-interactive). If empty, user will be created with a blank password.
-RUN if [ -n "$SMBUSER_PASSWORD" ]; then \
-            (echo "$SMBUSER_PASSWORD"; echo "$SMBUSER_PASSWORD") | smbpasswd -s -a smbuser && smbpasswd -e smbuser; \
-        else echo "No SMBUSER_PASSWORD provided; smbuser created without SMB password"; fi
-
-# Add a small entrypoint script to start Samba daemons properly
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-EXPOSE 137 139 445
-
-# Use the entrypoint script (exec form)
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
-
+ENTRYPOINT ["/entrypoint.sh"]
